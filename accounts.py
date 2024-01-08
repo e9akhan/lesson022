@@ -108,7 +108,7 @@ def ledger(date, amount, category, desc, mode_of_payment):
         csvwriter.writerow(data)
 
 
-def generate_csv_file(in_file, out_file, *keys):
+def generate_csv_file(in_file, out_file, key):
     """
     Generate csv file with name in out_file with given keys
     from in_file.
@@ -122,12 +122,16 @@ def generate_csv_file(in_file, out_file, *keys):
         csvreader = csv.DictReader(f)
         data = list(csvreader)
 
-    data2 = [{key: entry[key] for key in keys} for entry in data]
+    keys = {entry[key] for entry in data}
+    print(keys)
 
-    with open(out_file, "w", encoding="utf-8") as category_file:
-        csvwriter = csv.DictWriter(category_file, fieldnames=data2[0].keys())
-        csvwriter.writeheader()
-        csvwriter.writerows(data2)
+    for k in keys:
+        data2 = [entry for entry in data if entry[key] == k]
+
+        with open(k + '.csv', 'w', encoding='utf-8') as f:
+            csvwriter = csv.DictWriter(f, fieldnames=data2[0].keys())
+            csvwriter.writeheader()
+            csvwriter.writerows(data2)
 
 
 def generate_category_report():
@@ -138,7 +142,7 @@ def generate_category_report():
         Name of generated file.
     """
     generate_csv_file(
-        "ledger.csv", "category.csv", "date", "category", "desc", "amount"
+        "ledger.csv", "category.csv", "category"
     )
 
     return "category.csv"
@@ -152,7 +156,7 @@ def generate_payment_report():
         Name of generated file.
     """
     generate_csv_file(
-        "ledger.csv", "payment.csv", "date", "mode_of_payment", "desc", "amount"
+        "ledger.csv", "payment.csv", "mode_of_payment"
     )
 
     return "payment.csv"
