@@ -108,7 +108,7 @@ def ledger(date, amount, category, desc, mode_of_payment):
         csvwriter.writerow(data)
 
 
-def generate_csv_file(in_file, out_file, key):
+def generate_csv_file(in_file, out_file, *keys):
     """
     Generate csv file with name in out_file with given keys
     from in_file.
@@ -122,16 +122,12 @@ def generate_csv_file(in_file, out_file, key):
         csvreader = csv.DictReader(f)
         data = list(csvreader)
 
-    keys = {entry[key] for entry in data}
-    print(keys)
+    data2 = [{key: entry[key] for key in keys} for entry in data]
 
-    for k in keys:
-        data2 = [entry for entry in data if entry[key] == k]
-
-        with open(k + '.csv', 'w', encoding='utf-8') as f:
-            csvwriter = csv.DictWriter(f, fieldnames=data2[0].keys())
-            csvwriter.writeheader()
-            csvwriter.writerows(data2)
+    with open(out_file, "w", encoding="utf-8") as f:
+        csvwriter = csv.DictWriter(f, fieldnames=data2[0].keys())
+        csvwriter.writeheader()
+        csvwriter.writerows(data2)
 
 
 def generate_category_report():
@@ -142,7 +138,7 @@ def generate_category_report():
         Name of generated file.
     """
     generate_csv_file(
-        "ledger.csv", "category.csv", "category"
+        "ledger.csv", "category.csv", "date", "category", "desc", "amount"
     )
 
     return "category.csv"
@@ -156,7 +152,7 @@ def generate_payment_report():
         Name of generated file.
     """
     generate_csv_file(
-        "ledger.csv", "payment.csv", "mode_of_payment"
+        "ledger.csv", "payment.csv", "date", "mode_of_payment", "desc", "amount"
     )
 
     return "payment.csv"
@@ -200,6 +196,8 @@ def print_report():
                     )
                 category_data.append(amount)
         categorized_data.append(category_data)
+
+    today = datetime.date.today()
 
     print(f"{'Category':10}", end="")
     txt = f"{'Category':10}"
@@ -273,7 +271,7 @@ def generate_html_file(output):
         html_file.write(html)
 
 
-def generate_random_data():
+def generate_random_data(n):
     """
     Generate random data for ledger.csv file.
     """
@@ -284,7 +282,7 @@ def generate_random_data():
 
     current_year = datetime.date.today().year
 
-    for year in range(current_year - 12, current_year + 1):
+    for year in range(current_year - n - 1, current_year):
         for month in range(1, 13):
             for category in categories:
                 date = random.randint(1, 28)
@@ -305,10 +303,9 @@ def generate_random_data():
 
 
 if __name__ == "__main__":
-    generate_random_data()
+    generate_random_data(3)
     print(credit_amount(11000))
     print(debit(1000))
-    print(transaction(10000, "Credit", "Added Credit", "UPI", credit=True))
     print_report()
     print(generate_category_report())
     print(generate_payment_report())
